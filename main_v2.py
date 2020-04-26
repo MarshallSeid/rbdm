@@ -25,7 +25,7 @@ def analyze_text_sentiment(text):
 
     response = client.analyze_entity_sentiment(document=document)
 
-    return response
+    return response  # .entities
     # results = [
     #     ('text', text),
     #     ('score', sentiment.score),
@@ -35,8 +35,8 @@ def analyze_text_sentiment(text):
     #     print('{:10}: {}'.format(k, v))
 
 
-text = 'President Trump agreed on Monday to certify again that Iran is complying with an international nuclear agreement that he has strongly criticized, but only after hours of arguing with his top national security advisers, briefly upending a planned announcement.'
-print(analyze_text_sentiment(text))
+# text = 'President Trump agreed on Monday to certify again that Iran is complying with an international nuclear agreement that he has strongly criticized, but only after hours of arguing with his top national security advisers, briefly upending a planned announcement.'
+# print(analyze_text_sentiment(text))
 
 # SUBJECT_STRING = 'Iran nuclear deal'
 
@@ -61,36 +61,31 @@ print(analyze_text_sentiment(text))
 #     return cleaned_tokens
 
 
-# if __name__ == "__main__":
-#     # Open classifier.
-#     f = open('my_classifier.pickle', 'rb')
-#     classifier = pickle.load(f)
-
-#     # Add Stop words.
-#     stop_words = stopwords.words('english')
-#     stop_words += ['…']
-
-#     res = []
-#     # Parse Json
-#     with open('iran-nuclear-deal.json') as data_file:
-#         data = json.load(data_file)
-#         for entry in data:
-#             try:
-#                 entry = json.loads(entry)
-#                 # Extract the abstract
-#                 abstract = entry['bib']['abstract']
-#                 custom_tokens = remove_noise(
-#                     word_tokenize(abstract), stop_words
-#                 )
-#                 predicted_status = classifier.classify(
-#                     dict([token, True] for token in custom_tokens))
-#                 # print(custom_tokens)
-#                 entry['bib']['predicted_status'] = predicted_status
-#                 print(entry)
-#                 res.append(entry)
-#                 # print(abstract)
-#             except Exception:
-#                 pass
-#         with open('result_with_status.json', 'w') as outfile:
-#             json.dump(res, outfile)
-#     f.close()
+if __name__ == "__main__":
+    res = []
+    # Parse Json
+    with open('iran-nuclear-deal.json') as data_file:
+        data = json.load(data_file)
+        for entry in data:
+            # print(entry)
+            try:
+                entry = json.loads(entry)
+                # Extract the abstract
+                abstract = entry['bib']['abstract']
+                response = analyze_text_sentiment(abstract)
+                curr_map = {}
+                for entity in response.entities:
+                    # print(entity)
+                    score = entity.sentiment.score * 100
+                    score = round(score, 4)
+                    curr_map[entity.name] = score
+                    # curr_map[entity.name] = entity.sentiment.score
+                entry['bib']['sentiment_map'] = curr_map
+                # print(entry)
+                res.append(entry)
+                # print(entry)
+            except Exception:
+                pass
+        with open('result_with_status_v2.json', 'w') as outfile:
+            json.dump(res, outfile)
+            # json.dump(json.dumps(res.__dict__), outfile)
